@@ -1,1 +1,94 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"research-run.schema.json","title":"ResearchRun","type":"object","required":["run_id","question","scope","plan","iterations","status"],"properties":{"run_id":{"type":"string"},"question":{"type":"object"},"scope":{"type":"object"},"plan":{"type":"object"},"iterations":{"type":"array","items":{"type":"object"}},"status":{"enum":["running","blocked","sufficient","completed","failed"]},"stopping_reason":{"type":["string","null"]},"final_answer":{"type":["object","null"]}},"additionalProperties":true}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research-engine/research-run.schema.json",
+  "title": "ResearchRun",
+  "type": "object",
+  "required": ["run_id", "question", "scope", "plan", "iterations", "status", "provenance"],
+  "properties": {
+    "run_id": {"type": "string"},
+    "question": {"$ref": "#/$defs/question"},
+    "scope": {"type": "object"},
+    "plan": {"type": "object"},
+    "iterations": {"type": "array", "items": {"$ref": "#/$defs/iteration"}},
+    "sources": {"type": "array", "items": {"$ref": "#/$defs/source"}},
+    "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
+    "claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+    "contradictions": {"type": "array", "items": {"type": "object"}},
+    "findings": {"type": "array", "items": {"type": "object"}},
+    "status": {"enum": ["running", "blocked", "sufficient", "completed", "failed"]},
+    "stopping_reason": {"type": ["string", "null"]},
+    "final_answer": {"type": ["object", "null"]},
+    "provenance": {"type": "object"}
+  },
+  "$defs": {
+    "question": {
+      "type": "object",
+      "required": ["original"],
+      "properties": {
+        "original": {"type": "string"},
+        "normalized": {"type": "string"},
+        "type": {"type": "string"},
+        "constraints": {"type": "array", "items": {"type": "string"}},
+        "ambiguities": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "iteration": {
+      "type": "object",
+      "required": ["id", "trigger", "actions"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 0},
+        "trigger": {"type": "string"},
+        "objective": {"type": "string"},
+        "actions": {"type": "array", "items": {"type": "object"}},
+        "new_evidence": {"type": "array", "items": {"type": "string"}},
+        "changed_claims": {"type": "array", "items": {"type": "string"}},
+        "decision": {"type": "string"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["id", "title", "source_type"],
+      "properties": {
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "url": {"type": "string"},
+        "source_type": {"type": "string"},
+        "authors": {"type": "array", "items": {"type": "string"}},
+        "published_at": {"type": "string"},
+        "quality": {"type": "object"},
+        "provenance": {"type": "object"}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["id", "source_id", "content", "direction"],
+      "properties": {
+        "id": {"type": "string"},
+        "source_id": {"type": "string"},
+        "location": {"type": "string"},
+        "content": {"type": "string"},
+        "evidence_type": {"type": "string"},
+        "direction": {"enum": ["supports", "contradicts", "neutral", "contextual"]},
+        "limitations": {"type": "array", "items": {"type": "string"}},
+        "confidence": {"type": "string"}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "required": ["id", "text", "status"],
+      "properties": {
+        "id": {"type": "string"},
+        "text": {"type": "string"},
+        "type": {"type": "string"},
+        "importance": {"type": "integer", "minimum": 0},
+        "status": {"enum": ["proposed", "supported", "contradicted", "mixed", "unknown", "verified", "unverified"]},
+        "confidence": {"type": "string"},
+        "supporting_evidence": {"type": "array", "items": {"type": "string"}},
+        "contradicting_evidence": {"type": "array", "items": {"type": "string"}},
+        "dependencies": {"type": "array", "items": {"type": "string"}},
+        "provenance": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "additionalProperties": true
+}
