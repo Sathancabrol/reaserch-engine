@@ -1,0 +1,18 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"sufficiency-decision.schema.json",
+  "title":"SufficiencyDecision",
+  "type":"object",
+  "required":["decision","reasons","critical_gaps","next_actions"],
+  "properties":{
+    "decision":{"enum":["continue","stop","blocked","human_review"]},
+    "reasons":{"type":"array","items":{"type":"string"}},
+    "critical_gaps":{"type":"array","items":{"type":"string"}},
+    "next_actions":{"type":"array","items":{"type":"object"}},
+    "coverage":{"type":"number","minimum":0,"maximum":1},
+    "expected_information_gain":{"type":"number","minimum":0},
+    "research_cost":{"type":"number","minimum":0},
+    "confidence":{"enum":["high","moderate","low","unresolved"]}
+  },
+  "additionalProperties":true
+}
