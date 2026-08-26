@@ -52,4 +52,10 @@ to checkpoint the initialized run, each completed agent step, and the final
 decision. This makes interrupted runs inspectable and recoverable without a
 database dependency.
 
+## Academic retrieval
+
+The injectable retrieval layer now includes `CrossrefRetriever` for DOI-backed
+academic discovery and `LocalFirstRetriever` for local evidence before external
+fallback. Neither performs a network request unless explicitly used.
+
 See `docs/product-requirements-v0.1.md` and `docs/research-output-spec-v0.1.md` for the product and output contracts.
