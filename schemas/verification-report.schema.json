@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"verification-report.schema.json",
+  "title":"VerificationReport",
+  "type":"object",
+  "required":["status","checks","issues"],
+  "properties":{
+    "status":{"enum":["passed","passed_with_warnings","failed","blocked"]},
+    "checks":{"type":"array","items":{"type":"object"}},
+    "issues":{"type":"array","items":{"type":"object"}},
+    "unverified_claims":{"type":"array","items":{"type":"string"}},
+    "citation_mismatches":{"type":"array","items":{"type":"string"}},
+    "reviewed_at":{"type":"string"}
+  },
+  "additionalProperties":true
+}
