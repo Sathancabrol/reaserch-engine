@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 from .state_machine import ResearchState, transition
 from .sufficiency import SufficiencyInput, assess
+from .evidence_graph import EvidenceGraph
 
 Agent = Callable[[dict[str, Any]], dict[str, Any]]
 
@@ -39,6 +40,11 @@ class Orchestrator:
         run.history.append({"iteration": run.iteration, "agent": name, "result_keys": list(result or {})})
 
     def run(self, run: ResearchRun) -> ResearchRun:
+        # The graph belongs to the run context so injected agents can enrich it
+        # without the orchestrator needing domain-specific extraction logic.
+        run.context.setdefault("evidence_graph", EvidenceGraph())
+        run.context.setdefault("run_id", run.run_id)
+        run.context.setdefault("question", run.question)
         run.state = transition(run.state, ResearchState.PLANNING)
         self._run_agent("planner", run)
 

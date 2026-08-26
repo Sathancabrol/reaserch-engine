@@ -2,14 +2,14 @@
 
 
 def build_claim(graph, claim_id: str, text: str, importance: int = 1, **data):
-    graph.add_node(claim_id, "claim", text=text, importance=importance, status="proposed", **data)
+    graph.add_claim(claim_id, text=text, importance=importance, **data)
     return claim_id
 
 
 def attach_evidence(graph, claim_id: str, evidence_id: str, direction: str):
     if direction not in {"supports", "contradicts", "neutral", "contextual"}:
         raise ValueError(f"Unsupported evidence direction: {direction}")
-    graph.add_edge(claim_id, direction, evidence_id)
+    graph.link_evidence(evidence_id, claim_id, direction)
 
 
 def claim_status(graph, claim_id: str) -> str:

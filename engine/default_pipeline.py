@@ -4,6 +4,7 @@ from .agents import (
     PlannerAgent, ResearcherAgent, EvidenceAnalystAgent,
     ContradictionAnalystAgent, SynthesizerAgent, VerifierAgent, NextActionAgent,
 )
+from .agents import AgentContext
 
 
 def build_agents(retriever):
@@ -16,4 +17,13 @@ def build_agents(retriever):
         VerifierAgent(),
         NextActionAgent(),
     ]
-    return {agent.name: agent.execute for agent in instances}
+    def invoke(execute):
+        def wrapped(state):
+            return execute(AgentContext(
+                run_id=state.get("run_id", "unknown"),
+                question=state.get("question", ""),
+                state=state,
+            ))
+        return wrapped
+
+    return {agent.name: invoke(agent.execute) for agent in instances}

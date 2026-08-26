@@ -47,21 +47,59 @@ class EvidenceAnalystAgent:
     name = "evidence_analyst"
 
     def execute(self, context: AgentContext) -> dict[str, Any]:
-        return {"evidence_analysis": {"status": "pending", "results": context.state.get("search_results", [])}}
+        from .run_builder import RunBuilder
+
+        graph = context.state.get("evidence_graph")
+        builder = RunBuilder(graph)
+        records = []
+        for result in context.state.get("search_results", []):
+            records.append(builder.add_source_result(result))
+        # Claim drafts are optional structured agent output. Keeping them
+        # separate from final claims prevents the core from inventing claims.
+        for draft in context.state.get("claim_drafts", []):
+            if isinstance(draft, dict) and {"id", "text"} <= draft.keys():
+                builder.add_claim(
+                    draft["id"], draft["text"], draft.get("evidence_ids", ()),
+                    draft.get("importance", 1), draft.get("direction", "supports"),
+                )
+        return {
+            "evidence": records,
+            "evidence_analysis": {"status": "complete", "records": records},
+            "evidence_graph_snapshot": builder.snapshot(),
+        }
 
 
 class ContradictionAnalystAgent:
     name = "contradiction_analyst"
 
     def execute(self, context: AgentContext) -> dict[str, Any]:
-        return {"contradictions": []}
+        from .run_builder import RunBuilder
+
+        builder = RunBuilder(context.state.get("evidence_graph"))
+        contradictions = context.state.get("contradictions", [])
+        for item in contradictions:
+            if isinstance(item, dict) and {"id", "claim_ids"} <= item.keys():
+                data = {key: value for key, value in item.items() if key not in {"id", "claim_ids"}}
+                builder.add_contradiction(item["id"], item["claim_ids"], **data)
+        return {"contradictions": contradictions, "evidence_graph_snapshot": builder.snapshot()}
 
 
 class SynthesizerAgent:
     name = "synthesizer"
 
     def execute(self, context: AgentContext) -> dict[str, Any]:
-        return {"synthesis": {"status": "draft", "based_on": context.state.get("claims", [])}}
+        from .run_builder import RunBuilder
+
+        synthesis = {"status": "draft", "based_on": context.state.get("claims", [])}
+        builder = RunBuilder(context.state.get("evidence_graph"))
+        # A provider may explicitly return a conclusion draft. It is only added
+        # when a claim provenance list accompanies it.
+        draft = context.state.get("conclusion_draft")
+        if isinstance(draft, dict) and {"id", "text"} <= draft.keys():
+            builder.add_conclusion(draft["id"], draft["text"], draft.get("claim_ids", ()),
+                                   draft.get("contradiction_ids", ()))
+            synthesis["conclusion_id"] = draft["id"]
+        return {"synthesis": synthesis, "evidence_graph_snapshot": builder.snapshot()}
 
 
 class VerifierAgent:

@@ -10,21 +10,34 @@ class RunBuilder:
         self.graph = graph or EvidenceGraph()
 
     def add_source_result(self, result):
-        self.graph.add_node(result.id, "source", title=result.title, url=result.url, source_type=result.source_type)
+        if result.id not in self.graph.nodes:
+            self.graph.add_source(result.id, title=result.title, url=result.url, source_type=result.source_type)
         evidence = extract(result, f"evidence:{result.id}")
-        self.graph.add_node(evidence.id, "evidence", content=evidence.content, source_id=evidence.source_id)
-        self.graph.add_edge(evidence.id, "derived_from", result.id)
+        if evidence.id not in self.graph.nodes:
+            self.graph.add_evidence(evidence.id, source_id=evidence.source_id, content=evidence.content,
+                                    direction=evidence.direction, evidence_type=evidence.evidence_type,
+                                    location=evidence.location, confidence=evidence.confidence,
+                                    limitations=evidence.limitations or [])
         return evidence
 
-    def add_claim(self, claim_id, text, evidence_ids=(), importance=1):
-        build_claim(self.graph, claim_id, text, importance=importance)
+    def add_claim(self, claim_id, text, evidence_ids=(), importance=1, direction="supports"):
+        if claim_id not in self.graph.nodes:
+            build_claim(self.graph, claim_id, text, importance=importance)
         for evidence_id in evidence_ids:
-            attach_evidence(self.graph, claim_id, evidence_id, "supports")
+            attach_evidence(self.graph, claim_id, evidence_id, direction)
         self.graph.nodes[claim_id].data["status"] = claim_status(self.graph, claim_id)
         return self.graph.nodes[claim_id]
 
+    def add_contradiction(self, contradiction_id, claim_ids, **data):
+        if contradiction_id not in self.graph.nodes:
+            return self.graph.add_contradiction(contradiction_id, claim_ids=claim_ids, **data)
+        return self.graph.nodes[contradiction_id]
+
+    def add_conclusion(self, conclusion_id, text, claim_ids=(), contradiction_ids=(), **data):
+        if conclusion_id not in self.graph.nodes:
+            return self.graph.add_conclusion(conclusion_id, text=text, claim_ids=claim_ids,
+                                             contradiction_ids=contradiction_ids, **data)
+        return self.graph.nodes[conclusion_id]
+
     def snapshot(self):
-        return {
-            "nodes": [{"id": n.id, "kind": n.kind, "data": n.data} for n in self.graph.nodes.values()],
-            "edges": [{"source": e.source, "relation": e.relation, "target": e.target, "data": e.data} for e in self.graph.edges],
-        }
+        return self.graph.snapshot()

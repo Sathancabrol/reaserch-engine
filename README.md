@@ -29,4 +29,19 @@ User input
 
 Core modules include the state machine, dependency-injected orchestrator, adaptive planner/strategy components, source-quality model, sufficiency gates and tests.
 
+## Evidence graph increment
+
+The v0.1 core now records an inspectable chain:
+
+```text
+Source --provides--> Evidence --supports|contradicts--> Claim
+Claim --conflicts_in--> Contradiction --qualifies--> Conclusion
+```
+
+`EvidenceGraph` validates endpoints and preserves the source of each evidence
+record. The default pipeline adds retrieved sources and extracted evidence to
+the run graph; provider agents may add explicit claim, contradiction and
+conclusion drafts. A JSON-safe snapshot is published as
+`run.context["evidence_graph_snapshot"]` for dossiers and persistence adapters.
+
 See `docs/product-requirements-v0.1.md` and `docs/research-output-spec-v0.1.md` for the product and output contracts.

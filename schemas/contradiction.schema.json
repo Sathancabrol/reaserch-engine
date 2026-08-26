@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contradiction.schema.json",
+  "title": "Contradiction",
+  "type": "object",
+  "required": ["id", "claim_ids", "classification"],
+  "properties": {
+    "id": {"type": "string"},
+    "claim_ids": {"type": "array", "minItems": 2, "items": {"type": "string"}},
+    "classification": {"type": "string"},
+    "status": {"enum": ["unresolved", "explained", "resolved"]},
+    "notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}

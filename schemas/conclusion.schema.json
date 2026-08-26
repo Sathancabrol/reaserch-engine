@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "conclusion.schema.json",
+  "title": "Conclusion",
+  "type": "object",
+  "required": ["id", "text", "claim_ids"],
+  "properties": {
+    "id": {"type": "string"},
+    "text": {"type": "string", "minLength": 1},
+    "claim_ids": {"type": "array", "items": {"type": "string"}},
+    "contradiction_ids": {"type": "array", "items": {"type": "string"}},
+    "confidence": {"enum": ["high", "moderate", "low", "unresolved", "insufficient"]}
+  },
+  "additionalProperties": true
+}
