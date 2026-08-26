@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"research-action.schema.json",
+  "title":"ResearchAction",
+  "type":"object",
+  "required":["action_id","type","target","rationale"],
+  "properties":{
+    "action_id":{"type":"string"},
+    "type":{"enum":["search","source_review","evidence_extraction","claim_verification","counter_search","citation_chain","contradiction_investigation","gap_analysis","synthesis_revision","human_review"]},
+    "target":{"type":"string"},
+    "rationale":{"type":"string"},
+    "expected_information_gain":{"type":"number","minimum":0},
+    "cost":{"type":"number","minimum":0},
+    "priority":{"type":"number","minimum":0}
+  },
+  "additionalProperties":true
+}
