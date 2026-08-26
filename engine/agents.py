@@ -106,7 +106,17 @@ class VerifierAgent:
     name = "verifier"
 
     def execute(self, context: AgentContext) -> dict[str, Any]:
-        return {"verification": {"critical_issues": 0}}
+        from .graph_assessment import assess_evidence_graph
+
+        graph = context.state.get("evidence_graph")
+        assessment = assess_evidence_graph(graph) if graph is not None else {}
+        return {
+            "verification": {"critical_issues": 0, "graph_assessment": assessment},
+            "sufficiency": {
+                "weak_critical_claims": assessment.get("weak_critical_claims", 0),
+                "unresolved_major_contradictions": assessment.get("unresolved_major_contradictions", 0),
+            },
+        }
 
 
 class NextActionAgent:

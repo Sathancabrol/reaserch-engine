@@ -3,6 +3,7 @@
 from .evidence_extractor import extract
 from .evidence_graph import EvidenceGraph
 from .claims import build_claim, attach_evidence, claim_status
+from .source_quality import classify_source
 
 
 class RunBuilder:
@@ -11,7 +12,17 @@ class RunBuilder:
 
     def add_source_result(self, result):
         if result.id not in self.graph.nodes:
-            self.graph.add_source(result.id, title=result.title, url=result.url, source_type=result.source_type)
+            metadata = result.metadata or {}
+            self.graph.add_source(
+                result.id, title=result.title, url=result.url, source_type=result.source_type,
+                metadata=metadata,
+                quality=classify_source(
+                    source_type=result.source_type,
+                    peer_reviewed=metadata.get("peer_reviewed"),
+                    direct_evidence=result.source_type == "primary_study",
+                    transparent_methods=metadata.get("transparent_methods"),
+                ),
+            )
         evidence = extract(result, f"evidence:{result.id}")
         if evidence.id not in self.graph.nodes:
             self.graph.add_evidence(evidence.id, source_id=evidence.source_id, content=evidence.content,

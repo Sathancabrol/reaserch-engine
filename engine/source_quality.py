@@ -2,7 +2,7 @@
 
 SOURCE_TYPES = {
     "primary_study", "systematic_review", "meta_analysis", "institutional_report",
-    "academic_book", "thesis", "secondary_source", "opinion", "unverified_web",
+    "academic_book", "academic_record", "thesis", "secondary_source", "opinion", "unverified_web",
 }
 
 
