@@ -1,11 +1,8 @@
-"""Sufficiency decision logic for Research Engine v0.1.
+"""Stopping and sufficiency decisions for autonomous research.
 
-This module deliberately uses explicit signals instead of pretending that
-research completeness can be reduced to a universal numeric truth score.
+Explicit epistemic gates prevent both premature stopping and unbounded search.
 """
-
 from dataclasses import dataclass, field
-
 
 @dataclass
 class SufficiencyInput:
@@ -19,21 +16,23 @@ class SufficiencyInput:
     budget_remaining: float = 1.0
     evidence_saturation: bool = False
     user_depth_reached: bool = False
+    max_iterations_reached: bool = False
     notes: list[str] = field(default_factory=list)
 
-
 def assess(x: SufficiencyInput) -> dict:
-    """Return a transparent stop/continue/blocked decision."""
+    """Return a transparent stop/continue/blocked decision with next focus."""
     if x.verifier_critical_issues > 0:
-        return {"decision": "continue", "reason": "critical_verification_issue"}
+        return {"decision": "continue", "reason": "critical_verification_issue", "next_focus": ["verification"]}
     if x.critical_gaps > 0 or x.weak_critical_claims > 0:
-        return {"decision": "continue", "reason": "critical_evidence_gap"}
+        return {"decision": "continue", "reason": "critical_evidence_gap", "next_focus": ["evidence"]}
     if x.unresolved_major_contradictions > 0:
-        return {"decision": "continue", "reason": "major_contradiction_unresolved"}
+        return {"decision": "continue", "reason": "major_contradiction_unresolved", "next_focus": ["contradiction"]}
     if x.unsearched_high_value_categories > 0 and x.budget_remaining > 0:
-        return {"decision": "continue", "reason": "high_value_source_class_unsearched"}
+        return {"decision": "continue", "reason": "high_value_source_class_unsearched", "next_focus": ["source_coverage"]}
+    if x.max_iterations_reached:
+        return {"decision": "stop", "reason": "iteration_budget_exhausted", "next_focus": []}
     if x.user_depth_reached or x.evidence_saturation:
-        return {"decision": "stop", "reason": "depth_or_saturation_reached"}
+        return {"decision": "stop", "reason": "depth_or_saturation_reached", "next_focus": []}
     if x.expected_information_gain > x.research_cost and x.budget_remaining > 0:
-        return {"decision": "continue", "reason": "positive_expected_information_gain"}
-    return {"decision": "stop", "reason": "low_marginal_information_gain"}
+        return {"decision": "continue", "reason": "positive_expected_information_gain", "next_focus": ["highest_value_action"]}
+    return {"decision": "stop", "reason": "low_marginal_information_gain", "next_focus": []}
