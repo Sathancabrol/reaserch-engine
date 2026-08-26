@@ -36,6 +36,11 @@ class Orchestrator:
         if self.store is not None:
             self.store.save(run)
 
+    @staticmethod
+    def _build_dossier(run: ResearchRun) -> None:
+        from .dossier import build_dossier
+        run.context["research_dossier"] = build_dossier(run)
+
     def _run_agent(self, name: str, run: ResearchRun) -> None:
         agent = self.agents.get(name)
         if agent is None:
@@ -75,6 +80,7 @@ class Orchestrator:
             if decision["decision"] == "stop":
                 run.state = transition(run.state, ResearchState.SUFFICIENT)
                 run.state = transition(run.state, ResearchState.COMPLETED)
+                self._build_dossier(run)
                 self._checkpoint(run)
                 return run
 
@@ -87,5 +93,6 @@ class Orchestrator:
             "decision": "blocked",
             "reason": "maximum_iterations_reached",
         }
+        self._build_dossier(run)
         self._checkpoint(run)
         return run
