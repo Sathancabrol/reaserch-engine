@@ -44,4 +44,12 @@ the run graph; provider agents may add explicit claim, contradiction and
 conclusion drafts. A JSON-safe snapshot is published as
 `run.context["evidence_graph_snapshot"]` for dossiers and persistence adapters.
 
+## Checkpointing
+
+`JsonRunStore` saves atomic, JSON-readable checkpoints of a research run,
+including the graph and agent history. Pass it to `Orchestrator(..., store=...)`
+to checkpoint the initialized run, each completed agent step, and the final
+decision. This makes interrupted runs inspectable and recoverable without a
+database dependency.
+
 See `docs/product-requirements-v0.1.md` and `docs/research-output-spec-v0.1.md` for the product and output contracts.

@@ -124,3 +124,13 @@ class EvidenceGraph:
             "nodes": [{"id": n.id, "kind": n.kind, "data": n.data} for n in self.nodes.values()],
             "edges": [{"source": e.source, "relation": e.relation, "target": e.target, "data": e.data} for e in self.edges],
         }
+
+    @classmethod
+    def from_snapshot(cls, snapshot: dict[str, list[dict[str, Any]]]) -> "EvidenceGraph":
+        """Restore a graph snapshot while enforcing the usual endpoint checks."""
+        graph = cls()
+        for node in snapshot.get("nodes", []):
+            graph.add_node(node["id"], node["kind"], **node.get("data", {}))
+        for edge in snapshot.get("edges", []):
+            graph.add_edge(edge["source"], edge["relation"], edge["target"], **edge.get("data", {}))
+        return graph

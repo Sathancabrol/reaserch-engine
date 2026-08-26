@@ -19,6 +19,7 @@ class ResearchRun:
     question: str
     state: ResearchState = ResearchState.CREATED
     iteration: int = 0
+    revision: int = 0
     context: dict[str, Any] = field(default_factory=dict)
     history: list[dict[str, Any]] = field(default_factory=list)
 
@@ -26,9 +27,14 @@ class ResearchRun:
 class Orchestrator:
     """Coordinates the protocol; it does not contain domain knowledge."""
 
-    def __init__(self, agents: dict[str, Agent], max_iterations: int = 5):
+    def __init__(self, agents: dict[str, Agent], max_iterations: int = 5, store=None):
         self.agents = agents
         self.max_iterations = max_iterations
+        self.store = store
+
+    def _checkpoint(self, run: ResearchRun) -> None:
+        if self.store is not None:
+            self.store.save(run)
 
     def _run_agent(self, name: str, run: ResearchRun) -> None:
         agent = self.agents.get(name)
@@ -38,6 +44,7 @@ class Orchestrator:
         if result:
             run.context.update(result)
         run.history.append({"iteration": run.iteration, "agent": name, "result_keys": list(result or {})})
+        self._checkpoint(run)
 
     def run(self, run: ResearchRun) -> ResearchRun:
         # The graph belongs to the run context so injected agents can enrich it
@@ -45,6 +52,7 @@ class Orchestrator:
         run.context.setdefault("evidence_graph", EvidenceGraph())
         run.context.setdefault("run_id", run.run_id)
         run.context.setdefault("question", run.question)
+        self._checkpoint(run)
         run.state = transition(run.state, ResearchState.PLANNING)
         self._run_agent("planner", run)
 
@@ -67,6 +75,7 @@ class Orchestrator:
             if decision["decision"] == "stop":
                 run.state = transition(run.state, ResearchState.SUFFICIENT)
                 run.state = transition(run.state, ResearchState.COMPLETED)
+                self._checkpoint(run)
                 return run
 
             # Start the next research cycle from the research state.
@@ -78,4 +87,5 @@ class Orchestrator:
             "decision": "blocked",
             "reason": "maximum_iterations_reached",
         }
+        self._checkpoint(run)
         return run
